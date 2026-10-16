@@ -1,0 +1,493 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Interview Desk</title>
+<style>
+:root{--ink:#07111f;--navy:#0d1b2d;--panel:#14243a;--paper:#f4f7fb;--muted:#92a1b5;--line:rgba(255,255,255,.11);--blue:#3a7bff;--mint:#54e1b5;--amber:#f3b562;--danger:#ff7b7b;--display:"Bahnschrift SemiCondensed","Arial Narrow",sans-serif;--body:"Segoe UI Variable","Segoe UI",sans-serif;--mono:"Cascadia Mono","Consolas",monospace}
+*{box-sizing:border-box}html,body{height:100%;margin:0}body{font-family:var(--body);background:var(--ink);color:var(--paper);overflow:hidden}button,select{font:inherit}button{cursor:pointer}button:focus-visible,select:focus-visible{outline:3px solid var(--mint);outline-offset:3px}.hidden{display:none!important}.app{height:100%;min-height:620px;background:radial-gradient(circle at 66% 22%,rgba(58,123,255,.13),transparent 34%),linear-gradient(135deg,#07111f,#0b1728 56%,#07111f)}
+.lobby{height:100%;display:grid;grid-template-columns:minmax(310px,.82fr) minmax(520px,1.18fr);position:relative;overflow:hidden}.brand-pane{padding:clamp(42px,6vw,86px);display:flex;flex-direction:column;justify-content:space-between;border-right:1px solid var(--line);position:relative;z-index:1}.brand{display:flex;align-items:center;gap:13px;font:700 13px/1 var(--mono);letter-spacing:.16em;text-transform:uppercase}.brand-mark{width:34px;height:34px;border:1px solid rgba(84,225,181,.42);border-radius:50%;display:grid;place-items:center;color:var(--mint)}.brand-mark:before{content:"";width:9px;height:9px;background:currentColor;border-radius:50%}.intro-kicker{font:600 12px/1 var(--mono);color:var(--mint);letter-spacing:.14em;text-transform:uppercase;margin-bottom:18px}.brand-pane h1{font:400 clamp(48px,6vw,86px)/.92 var(--display);letter-spacing:-.035em;margin:0;max-width:7ch}.brand-pane h1 em{font-style:normal;color:var(--blue)}.brand-pane .lead{color:#b8c4d3;font-size:17px;line-height:1.7;max-width:39ch;margin:28px 0 0}.privacy{display:flex;gap:11px;color:var(--muted);font-size:13px;line-height:1.5}.privacy svg{flex:none;color:var(--mint)}
+.choice-pane{padding:clamp(42px,7vw,110px);display:flex;flex-direction:column;justify-content:center;position:relative;z-index:1;overflow-y:auto}.choice-pane h2{font:500 clamp(28px,3.3vw,46px)/1.05 var(--display);margin:0 0 12px}.choice-pane>.sub{color:var(--muted);margin:0 0 24px}.language-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px;max-width:760px}.language-card{position:relative;text-align:left;background:rgba(20,36,58,.7);border:1px solid var(--line);color:var(--paper);border-radius:18px;padding:24px;min-height:168px;transition:.22s ease;overflow:hidden}.language-card:after{content:"";position:absolute;inset:auto -35px -55px auto;width:130px;height:130px;border:1px solid rgba(255,255,255,.07);border-radius:50%}.language-card:hover{transform:translateY(-3px);border-color:rgba(58,123,255,.55);background:#162942}.language-card.selected{border-color:var(--blue);box-shadow:0 12px 36px rgba(0,0,0,.3);background:linear-gradient(145deg,#172d4c,#132238)}.language-card .code{font:700 12px/1 var(--mono);letter-spacing:.16em;color:var(--mint)}.language-card strong{display:block;font:500 31px/1 var(--display);margin:22px 0 8px}.language-card small{display:block;color:var(--muted);font-size:13px;line-height:1.45;max-width:28ch}.check{position:absolute;right:19px;top:19px;width:24px;height:24px;border:1px solid var(--line);border-radius:50%;display:grid;place-items:center;color:transparent}.selected .check{background:var(--blue);border-color:var(--blue);color:white}
+
+/* ---------- question selection panel ---------- */
+.q-section{margin-top:26px;max-width:760px}
+.q-section h3{font:500 18px/1.15 var(--display);margin:0 0 6px}
+.q-controls{display:flex;align-items:center;gap:14px;margin-bottom:14px;flex-wrap:wrap}
+.q-controls label{font-size:13px;color:var(--muted)}
+.q-controls select,.q-controls input[type=number]{background:var(--panel);color:var(--paper);border:1px solid var(--line);border-radius:9px;padding:7px 10px;font:13px var(--body);width:72px}
+.q-status{font:600 12px/1 var(--mono);letter-spacing:.06em;padding:5px 10px;border-radius:8px;white-space:nowrap}
+.q-status.valid{background:rgba(84,225,181,.12);color:var(--mint)}
+.q-status.invalid{background:rgba(255,123,123,.12);color:var(--danger)}
+.q-list{list-style:none;margin:0;padding:0;max-height:290px;overflow-y:auto;border:1px solid var(--line);border-radius:14px;background:rgba(20,36,58,.55);scrollbar-width:thin;scrollbar-color:#30445f transparent}
+.q-item{display:flex;align-items:flex-start;gap:12px;padding:12px 16px;border-bottom:1px solid var(--line);cursor:pointer;transition:background .15s}
+.q-item:last-child{border-bottom:0}
+.q-item:hover{background:rgba(58,123,255,.08)}
+.q-item.checked{background:rgba(58,123,255,.1)}
+.q-item input[type=checkbox]{flex:none;accent-color:var(--blue);width:18px;height:18px;margin-top:2px;cursor:pointer}
+.q-item-body{flex:1;min-width:0}
+.q-item-cat{font:600 10px/1 var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--mint);margin-bottom:4px}
+.q-item-text{font-size:14px;line-height:1.45;color:#dce5ef;margin:0}
+.q-toggle-all{background:none;border:1px solid var(--line);color:var(--paper);border-radius:8px;padding:5px 12px;font-size:12px;transition:.15s}
+.q-toggle-all:hover{border-color:var(--blue);color:var(--blue)}
+
+.lobby-actions{display:flex;align-items:center;gap:16px;margin-top:22px;max-width:760px}.primary{border:0;border-radius:12px;padding:15px 22px;background:var(--blue);color:white;font-weight:700;min-width:190px;box-shadow:0 8px 24px rgba(0,0,0,.3);transition:.2s}.primary:hover{filter:brightness(1.08);transform:translateY(-1px)}.primary:disabled{cursor:not-allowed;opacity:.5;transform:none}.device-wrap{margin-left:auto;color:var(--muted);font-size:12px}.device-wrap select{display:block;margin-top:6px;background:var(--panel);color:var(--paper);border:1px solid var(--line);border-radius:9px;padding:9px;max-width:260px}
+.begin-hint{display:block;margin-top:6px;font-size:12px;color:var(--danger);min-height:18px}
+
+.room{height:100%;display:grid;grid-template-rows:70px 1fr;animation:roomIn .45s ease both}.topbar{display:flex;align-items:center;gap:22px;padding:0 28px;border-bottom:1px solid var(--line);background:rgba(7,17,31,.84);backdrop-filter:blur(16px)}.topbar .brand{font-size:11px}.session-tag{padding:6px 10px;border:1px solid var(--line);border-radius:999px;color:#c5d0de;font:600 10px/1 var(--mono);letter-spacing:.1em;text-transform:uppercase}.progress-track{display:flex;align-items:center;gap:12px;margin-left:auto}.progress-copy{font:600 11px/1 var(--mono);color:var(--muted);white-space:nowrap}.track{width:180px;height:4px;background:rgba(255,255,255,.09);border-radius:9px;overflow:hidden}.track i{display:block;height:100%;width:100%;background:linear-gradient(90deg,var(--blue),var(--mint));transform-origin:left;transform:scaleX(0);transition:transform .5s ease}.end-btn{border:1px solid var(--line);background:transparent;color:#dce5f0;border-radius:9px;padding:9px 13px;font-size:12px}.end-btn:hover{border-color:rgba(255,123,123,.6);color:#ffd2d2}.end-btn:disabled{opacity:.35;cursor:not-allowed}
+.room-grid{min-height:0;display:grid;grid-template-columns:minmax(530px,1fr) minmax(300px,390px)}.stage{min-width:0;position:relative;display:grid;grid-template-rows:minmax(300px,1fr) auto;padding:24px 28px 27px;overflow:hidden}.interviewer{position:relative;z-index:1;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:0}.portrait-wrap{width:min(31vh,250px);aspect-ratio:1;border-radius:50%;position:relative;display:grid;place-items:center;background:linear-gradient(145deg,#233957,#101d31);box-shadow:0 20px 50px rgba(0,0,0,.35)}.portrait-wrap:before,.portrait-wrap:after{content:"";position:absolute;border-radius:50%;inset:-12px;border:1px solid var(--line)}.portrait-wrap:after{inset:-25px}.portrait-wrap.speaking:before{animation:pulse 1.15s ease-in-out infinite;border-color:rgba(255,255,255,.22)}.portrait{width:92%;height:92%;overflow:hidden;border-radius:50%}.portrait svg{width:100%;height:100%}#mouth{transform-origin:center;transition:transform 80ms ease}.portrait-wrap.speaking #mouth{animation:talk .22s ease-in-out infinite alternate}.person-name{font:500 26px/1 var(--display);margin:28px 0 6px}.person-role{font:600 10px/1 var(--mono);letter-spacing:.15em;text-transform:uppercase;color:var(--muted)}.state-line{display:flex;align-items:center;gap:8px;margin-top:16px;color:#c7d2df;font-size:13px}.state-dot{width:7px;height:7px;border-radius:50%;background:var(--muted)}.state-dot.live{background:var(--mint)}.state-dot.busy{background:var(--amber);animation:blink 1s infinite}
+.question-dock{position:relative;z-index:2;background:rgba(18,34,55,.92);border:1px solid var(--line);border-radius:18px;padding:19px 21px;display:grid;grid-template-columns:1fr auto;gap:18px;align-items:center;box-shadow:0 12px 36px rgba(0,0,0,.22)}.question-meta{font:600 10px/1 var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--mint);margin-bottom:9px}.question-text{font:400 clamp(18px,2vw,25px)/1.25 var(--display);margin:0;max-width:38ch}.mic{width:66px;height:66px;border:0;border-radius:50%;background:var(--blue);color:#fff;display:grid;place-items:center;box-shadow:0 6px 18px rgba(0,0,0,.25);transition:.2s}.mic:hover{transform:scale(1.04)}.mic:disabled{background:#34445a;color:#728096;box-shadow:none;cursor:not-allowed}.mic.recording{background:#ff6675;box-shadow:0 6px 18px rgba(0,0,0,.3);animation:micPulse 1.2s infinite}.mic svg{width:26px;height:26px}.mic-note{grid-column:1/-1;color:var(--muted);font-size:11px;margin-top:-8px}.mic-note b{color:#dbe5f0}
+.dossier{min-height:0;border-left:1px solid var(--line);background:rgba(13,27,45,.74);display:grid;grid-template-rows:auto 1fr auto}.dossier-head{padding:25px 23px 18px;border-bottom:1px solid var(--line)}.dossier-head small{font:600 10px/1 var(--mono);letter-spacing:.14em;color:var(--muted);text-transform:uppercase}.dossier-head h2{font:500 23px/1 var(--display);margin:8px 0 0}.transcript{overflow:auto;padding:18px 18px 30px;scrollbar-width:thin;scrollbar-color:#30445f transparent}.empty{color:var(--muted);font-size:13px;line-height:1.6;padding:20px 5px}.utterance{background:rgba(20,36,58,.5);border:1px solid var(--line);border-radius:10px;padding:10px 13px;margin:0 0 12px;animation:fadeUp .3s ease both}.utterance.candidate{background:rgba(58,123,255,.06)}.utterance.interviewer{background:rgba(84,225,181,.04)}.utterance small{font:600 9px/1 var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}.utterance p{font-size:13px;line-height:1.55;color:#dce5ef;margin:7px 0 0}.utterance.candidate p{color:#fff}.mode-row{padding:15px 20px;border-top:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;color:var(--muted);font-size:11px}.switch{border:1px solid var(--line);border-radius:999px;background:transparent;color:var(--paper);padding:7px 11px;font-size:11px}
+
+/* ---------- overlay / waiting / result ---------- */
+.overlay{position:fixed;inset:0;z-index:20;background:rgba(4,10,18,.88);backdrop-filter:blur(14px);display:grid;place-items:center;padding:25px;overflow-y:auto}.wait-card,.result-card,.error-card{width:min(620px,96vw);background:#122139;border:1px solid var(--line);border-radius:22px;padding:36px;box-shadow:0 20px 60px rgba(0,0,0,.45)}.spinner{width:44px;height:44px;border:3px solid rgba(255,255,255,.1);border-top-color:var(--mint);border-radius:50%;animation:spin .85s linear infinite;margin-bottom:22px}.wait-card h2,.result-card h2,.error-card h2{font:500 34px/1.05 var(--display);margin:0 0 12px}.wait-card p,.error-card p{color:var(--muted);line-height:1.6;margin:0}
+
+/* ---------- detailed feedback view ---------- */
+.feedback-view{width:min(880px,96vw);max-height:92vh;overflow-y:auto;background:#122139;border:1px solid var(--line);border-radius:22px;padding:0;box-shadow:0 20px 60px rgba(0,0,0,.45);scrollbar-width:thin;scrollbar-color:#30445f transparent}
+.fb-header{padding:36px 36px 0;position:sticky;top:0;background:#122139;z-index:2;border-bottom:1px solid var(--line);padding-bottom:22px}
+.fb-header .intro-kicker{margin-bottom:10px}
+.fb-header h2{font:500 30px/1.05 var(--display);margin:0 0 6px}
+.fb-verdict{font-size:14px;color:var(--muted)}
+
+.fb-score-row{display:flex;gap:24px;align-items:center;padding:22px 36px;border-bottom:1px solid var(--line);background:rgba(13,27,45,.5)}
+.score-ring{width:100px;height:100px;border-radius:50%;display:grid;place-items:center;background:conic-gradient(var(--mint) var(--score),rgba(255,255,255,.08) 0);position:relative;flex:none}
+.score-ring:before{content:"";position:absolute;inset:8px;border-radius:50%;background:var(--navy)}
+.score-ring strong{position:relative;font:600 25px/1 var(--display)}
+.fb-summary{flex:1;font-size:14px;line-height:1.6;color:#c3cfdd;margin:0}
+
+.fb-body{padding:0 36px 36px}
+.fb-section{margin-top:26px}
+.fb-section h3{font:500 16px/1.15 var(--display);margin:0 0 10px;color:var(--paper)}
+.fb-section h3 .label-count{font-weight:400;color:var(--muted);font-size:13px;margin-left:6px}
+.fb-pills{display:flex;flex-wrap:wrap;gap:8px}
+.fb-pill{background:rgba(84,225,181,.1);color:var(--mint);border-radius:8px;padding:7px 13px;font-size:13px;line-height:1.4}
+.fb-pill.improve{background:rgba(58,123,255,.1);color:#8ab4ff}
+
+.fb-dims{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px;margin-top:8px}
+.fb-dim{background:rgba(20,36,58,.7);border:1px solid var(--line);border-radius:12px;padding:14px}
+.fb-dim-label{font:600 11px/1 var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:6px}
+.fb-dim-score{font:600 22px/1 var(--display);color:var(--blue)}
+.fb-dim-note{font-size:12px;color:#aab6c8;margin-top:6px;line-height:1.4}
+
+/* per-question feedback cards */
+.fb-qa{background:rgba(20,36,58,.6);border:1px solid var(--line);border-radius:14px;padding:18px 20px;margin-top:12px}
+.fb-qa-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.fb-qa-num{font:600 11px/1 var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--mint)}
+.fb-qa-score{font:600 14px/1 var(--display);color:var(--blue)}
+.fb-qa-q{font:400 16px/1.3 var(--display);margin:0 0 10px;color:var(--paper)}
+.fb-qa-label{font:600 10px/1 var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:10px 0 4px}
+.fb-qa-answer{font-size:13px;line-height:1.55;color:#c3cfdd;margin:0;padding:10px 14px;background:rgba(0,0,0,.2);border-radius:10px;white-space:pre-wrap}
+.fb-qa-feedback{font-size:13px;line-height:1.55;color:#dce5ef;margin:0}
+.fb-qa-better{font-size:13px;line-height:1.55;color:var(--mint);margin:0;padding:10px 14px;background:rgba(84,225,181,.06);border:1px solid rgba(84,225,181,.12);border-radius:10px;white-space:pre-wrap}
+
+.fb-actions{display:flex;gap:12px;margin-top:28px;padding-top:20px;border-top:1px solid var(--line)}
+.btn-outline{border:1px solid var(--line);background:transparent;color:var(--paper);border-radius:12px;padding:13px 22px;font-weight:600;transition:.2s}
+.btn-outline:hover{border-color:var(--blue);color:var(--blue)}
+
+.report-path{font:11px/1.5 var(--mono);color:var(--muted);word-break:break-all;border-top:1px solid var(--line);padding-top:15px;margin-top:16px}
+.result-actions{display:flex;gap:12px;margin-top:22px}
+
+.toast{position:fixed;left:50%;bottom:26px;z-index:40;transform:translate(-50%,20px);opacity:0;background:#f4f7fb;color:#07111f;border-radius:10px;padding:11px 15px;font-size:12px;transition:.2s;pointer-events:none}.toast.show{opacity:1;transform:translate(-50%,0)}
+
+@keyframes roomIn{from{opacity:0;transform:scale(.99)}to{opacity:1;transform:none}}@keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}@keyframes pulse{50%{transform:scale(1.035);opacity:.65}}@keyframes talk{to{transform:scaleY(1.7)}}@keyframes blink{50%{opacity:.35}}@keyframes micPulse{50%{opacity:.75}}@keyframes spin{to{transform:rotate(360deg)}}
+@media(max-width:900px){body{overflow:auto}.app{min-height:100vh;height:auto}.lobby{grid-template-columns:1fr}.brand-pane{min-height:370px;border-right:0;border-bottom:1px solid var(--line)}.choice-pane{padding:42px 26px}.room{height:auto;min-height:100vh}.room-grid{grid-template-columns:1fr}.stage{min-height:730px}.dossier{border-left:0;border-top:1px solid var(--line);min-height:420px}.topbar{padding:0 16px}.track{width:90px}.session-tag{display:none}.feedback-view{max-height:none;border-radius:14px}.fb-header{position:static}}@media(max-width:590px){.language-grid{grid-template-columns:1fr}.lobby-actions{align-items:stretch;flex-direction:column}.device-wrap{margin:0}.brand-pane{padding:38px 26px}.brand-pane h1{font-size:54px}.stage{padding:20px 14px}.question-dock{grid-template-columns:1fr}.mic{justify-self:center}.topbar .brand span:last-child{display:none}.fb-header,.fb-body,.fb-score-row{padding-left:20px;padding-right:20px}}@media(prefers-reduced-motion:reduce){*,*:before,*:after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}
+</style>
+</head>
+<body>
+<main class="app">
+<section class="lobby" id="lobby"><div class="brand-pane"><div class="brand"><span class="brand-mark"></span><span>Interview Desk</span></div><div><div class="intro-kicker">Private call-center simulation</div><h1>Walk in.<br><em>Get hired.</em></h1><p class="lead">A realistic voice interview, built around the questions and customer-service situations you are actually preparing for.</p></div><div class="privacy"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z"/><path d="m9 12 2 2 4-4"/></svg><span>Your voice, answers and PDF report stay on this computer.<br>بياناتك وتقريرك بيظلوا على جهازك فقط.</span></div></div>
+<div class="choice-pane"><h2>Choose your interview language</h2><p class="sub">اختر اللغة اللي عايز تعمل بيها المقابلة</p><div class="language-grid"><button class="language-card selected" data-lang="de" aria-pressed="true"><span class="code">DE &middot; DEUTSCH</span><span class="check">&check;</span><strong>German interview</strong><small>12 Fragen &middot; Kundenservice &middot; Rollenspiel</small></button><button class="language-card" data-lang="en" aria-pressed="false"><span class="code">EN &middot; ENGLISH</span><span class="check">&check;</span><strong>English interview</strong><small>12 questions &middot; customer care &middot; role play</small></button></div>
+
+<!-- question selection panel -->
+<div class="q-section" id="qSection">
+<h3 id="qSectionTitle">Select your questions</h3>
+<div class="q-controls">
+  <label>Number of questions:
+    <input type="number" id="qCount" min="1" max="12" value="12">
+  </label>
+  <button class="q-toggle-all" id="qToggleAll">Select all</button>
+  <span class="q-status invalid" id="qStatus">Select 12 questions</span>
+</div>
+<ul class="q-list" id="qList" role="listbox" aria-label="Question bank"></ul>
+</div>
+
+<div class="lobby-actions"><button class="primary" id="begin" disabled>Begin interview</button><span class="begin-hint" id="beginHint"></span><label class="device-wrap">Microphone<select id="device"><option>System default</option></select></label></div></div></section>
+
+<section class="room hidden" id="room"><header class="topbar"><div class="brand"><span class="brand-mark"></span><span>Interview Desk</span></div><span class="session-tag" id="langTag">DE &middot; LIVE INTERVIEW</span><div class="progress-track"><span class="progress-copy" id="progressCopy">0 / 12</span><span class="track"><i id="progressBar"></i></span></div><button class="end-btn" id="end" disabled>Finish &amp; create PDF</button></header><div class="room-grid"><section class="stage"><div class="interviewer"><div class="portrait-wrap" id="portraitWrap"><div class="portrait">
+<svg viewBox="0 0 300 300" aria-label="Sophie, interviewer" role="img"><defs><linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#315077"/><stop offset="1" stop-color="#101c2e"/></linearGradient><linearGradient id="shirt" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#2a405d"/><stop offset="1" stop-color="#142238"/></linearGradient></defs><circle cx="150" cy="150" r="150" fill="url(#bg)"/><path d="M55 300c8-62 40-92 95-92s87 30 95 92" fill="url(#shirt)"/><path d="M119 193v35c9 14 53 14 62 0v-35" fill="#c78f72"/><ellipse cx="150" cy="128" rx="67" ry="82" fill="#d9a080"/><path d="M87 117c1-64 25-90 66-90 42 0 65 31 64 84-15-12-25-34-29-51-22 25-62 30-101 28Z" fill="#17202b"/><path d="M87 111c-13-2-16 10-11 24 3 10 9 16 17 14m120-38c13-2 16 10 11 24-3 10-9 16-17 14" fill="#d9a080" stroke="#bd7f64" stroke-width="2"/><path d="M109 118c10-7 21-7 31 0m20 0c10-7 21-7 31 0" fill="none" stroke="#3a2a28" stroke-width="4" stroke-linecap="round"/><ellipse cx="124" cy="128" rx="5" ry="4" fill="#141b24"/><ellipse cx="176" cy="128" rx="5" ry="4" fill="#141b24"/><path d="M150 130c-2 13-5 24-1 28 4 3 9 2 13 0" fill="none" stroke="#b8755c" stroke-width="3" stroke-linecap="round"/><path id="mouth" d="M126 174c15 8 33 8 48 0-9 16-38 16-48 0Z" fill="#713d3f"/><path d="M104 194c11 15 27 23 46 24 19-1 35-9 46-24" fill="none" stroke="#7d4e43" stroke-width="6" stroke-linecap="round" opacity=".65"/></svg>
+</div></div><h1 class="person-name" id="personName">Sophie Keller</h1><div class="person-role" id="personRole">Call-center recruiter</div><div class="state-line"><span class="state-dot live" id="stateDot"></span><span id="stateText">Ready</span></div></div><div class="question-dock"><div><div class="question-meta" id="questionMeta">QUESTION 01 &middot; INTRODUCTION</div><p class="question-text" id="questionText">The first question will appear here.</p></div><button class="mic" id="mic" disabled aria-label="Hold to speak"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 10a7 7 0 0 0 14 0M12 17v5M8 22h8"/></svg></button><div class="mic-note" id="micNote"><b>Hands-free:</b> answer after Sophie finishes speaking.</div></div></section><aside class="dossier"><div class="dossier-head"><small>LIVE CANDIDATE RECORD</small><h2>Your answers</h2></div><div class="transcript" id="transcript"><div class="empty" id="emptyTranscript">Your interview transcript will build here. Every answer is saved locally and linked to its exact question.</div></div><div class="mode-row"><span id="modeLabel">Hands-free mode</span><button class="switch" id="mode">Switch to push-to-talk</button></div></aside></div></section>
+</main>
+<div class="overlay hidden" id="waiting"><div class="wait-card"><div class="spinner"></div><h2 id="waitTitle">Preparing your interview</h2><p id="waitText">Loading the selected voice and calibrating speech recognition. This takes a few seconds.</p></div></div>
+<div class="overlay hidden" id="feedback"></div>
+<div class="overlay hidden" id="fatal"><div class="error-card"><div class="intro-kicker" style="color:var(--danger)">STARTUP ERROR</div><h2>Interview Desk could not start</h2><p id="fatalText"></p></div></div><div class="toast" id="toast"></div>
+<script>
+const $=id=>document.getElementById(id),ESC=s=>(s||"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+let lang="de",state="initializing",canTalk=false,recording=false,handsfree=true,answered=0,total=12,interviewStarted=false,ending=false;
+let questionBank=[],selectedIds=new Set(),qCount=12,evtSource=null;
+
+const copy={de:{tag:"DE \xb7 LIVE INTERVIEW",role:"Recruiterin \xb7 Kundenservice",answers:"Ihre Antworten",empty:"Ihr Gespr\xe4chsprotokoll entsteht hier. Jede Antwort wird lokal gespeichert und ihrer exakten Frage zugeordnet.",finish:"Beenden & PDF erstellen",hands:"Freih\xe4ndig",ptt:"Push-to-Talk",switchPtt:"Zu Push-to-Talk wechseln",switchHands:"Freih\xe4ndig einschalten",noteHands:"<b>Freih\xe4ndig:</b> Antworten Sie, nachdem Sophie ausgesprochen hat.",notePtt:"<b>Push-to-Talk:</b> Halten Sie die Taste oder die Leertaste gedr\xfcckt.",selTitle:"W\xe4hlen Sie Ihre Fragen",selAll:"Alle ausw\xe4hlen",selNone:"Alle abw\xe4hlen",beginBtn:"Interview starten",numLabel:"Anzahl Fragen:",needSelect:n=>`W\xe4hlen Sie ${n} Frage${n===1?"":"n"}`,ready:"\u2713 Bereit",states:{initializing:"wird vorbereitet",ready:"bereit",listening:"h\xf6rt zu",transcribing:"verarbeitet Ihre Antwort",thinking:"bereitet die n\xe4chste Frage vor",speaking:"spricht",recovering:"stellt die Verbindung wieder her",error:"Fehler"},fb:{kicker:"PRIVATE AUSWERTUNG ABGESCHLOSSEN",title:"Ihre detaillierte Auswertung",overall:"Gesamtergebnis",summary:"Zusammenfassung",strengths:"St\xe4rken",improvements:"N\xe4chste Schritte",dimensions:"Bewertungsbereiche",questions:"Fragen und Antworten",answer:"Ihre Antwort",feedback:"Feedback",better:"St\xe4rkere Formulierung",download:"PDF herunterladen",home:"Zur Startseite"}},en:{tag:"EN \xb7 LIVE INTERVIEW",role:"Call-center recruiter",answers:"Your answers",empty:"Your interview transcript will build here. Every answer is saved locally and linked to its exact question.",finish:"Finish & create PDF",hands:"Hands-free mode",ptt:"Push-to-talk mode",switchPtt:"Switch to push-to-talk",switchHands:"Turn on hands-free",noteHands:"<b>Hands-free:</b> answer after Sophie finishes speaking.",notePtt:"<b>Push-to-talk:</b> hold the button or Space while you answer.",selTitle:"Select your questions",selAll:"Select all",selNone:"Deselect all",beginBtn:"Begin interview",numLabel:"Number of questions:",needSelect:n=>`Select ${n} question${n===1?"":"s"}`,ready:"\u2713 Ready",states:{initializing:"preparing",ready:"ready",listening:"listening",transcribing:"processing your answer",thinking:"preparing the next question",speaking:"speaking",recovering:"reconnecting",error:"error"},fb:{kicker:"PRIVATE ASSESSMENT COMPLETE",title:"Your detailed assessment",overall:"Overall result",summary:"Summary",strengths:"Strengths",improvements:"Next steps",dimensions:"Assessment areas",questions:"Questions and answers",answer:"Your answer",feedback:"Feedback",better:"Stronger answer",download:"Download PDF",home:"Back to Home"}}};
+
+function post(url,body={}){return fetch(url,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)}).then(r=>r.json())}
+function toast(text){const e=$("toast");e.textContent=text;e.classList.add("show");setTimeout(()=>e.classList.remove("show"),2400)}
+
+// ─── language + question bank ────────────────────────────────────────
+function choose(value){
+  lang=value;
+  document.querySelectorAll(".language-card").forEach(c=>{
+    const on=c.dataset.lang===lang;
+    c.classList.toggle("selected",on);
+    c.setAttribute("aria-pressed",on);
+  });
+  loadQuestionBank();
+}
+document.querySelectorAll(".language-card").forEach(c=>c.onclick=()=>choose(c.dataset.lang));
+
+async function loadQuestionBank(){
+  try{
+    const r=await fetch(`/api/questions?lang=${lang}`);
+    const d=await r.json();
+    questionBank=d.questions||[];
+  }catch(e){questionBank=[];}
+  selectedIds.clear();
+  qCount=questionBank.length;
+  $("qCount").max=questionBank.length;
+  $("qCount").value=questionBank.length;
+  renderQuestionList();
+  syncSelectionState();
+}
+
+function renderQuestionList(){
+  const list=$("qList");
+  list.innerHTML="";
+  const c=copy[lang];
+  $("qSectionTitle").textContent=c.selTitle;
+  $("qToggleAll").textContent=selectedIds.size===questionBank.length?c.selNone:c.selAll;
+  $("qCount").previousElementSibling&&($("qCount").parentElement.childNodes[0].textContent=c.numLabel+"\n");
+  questionBank.forEach(q=>{
+    const li=document.createElement("li");
+    li.className="q-item"+(selectedIds.has(q.id)?" checked":"");
+    li.setAttribute("role","option");
+    li.setAttribute("aria-selected",selectedIds.has(q.id));
+    li.innerHTML=`<input type="checkbox" tabindex="-1" ${selectedIds.has(q.id)?"checked":""}><div class="q-item-body"><div class="q-item-cat">${ESC(q.category)}</div><p class="q-item-text">${ESC(q.text)}</p></div>`;
+    li.onclick=e=>{
+      e.preventDefault();
+      toggleQuestion(q.id);
+    };
+    list.appendChild(li);
+  });
+}
+
+function toggleQuestion(id){
+  if(selectedIds.has(id)) selectedIds.delete(id);
+  else if(selectedIds.size<qCount) selectedIds.add(id);
+  else{
+    toast(lang==="de"?`Maximal ${qCount} Fragen erlaubt`:`Maximum ${qCount} questions allowed`);
+    return;
+  }
+  renderQuestionList();
+  syncSelectionState();
+}
+
+$("qToggleAll").onclick=()=>{
+  if(selectedIds.size===questionBank.length){
+    selectedIds.clear();
+  }else{
+    selectedIds.clear();
+    questionBank.slice(0,qCount).forEach(q=>selectedIds.add(q.id));
+  }
+  renderQuestionList();
+  syncSelectionState();
+};
+
+$("qCount").oninput=()=>{
+  let v=parseInt($("qCount").value,10);
+  if(isNaN(v)||v<1) v=1;
+  if(v>questionBank.length) v=questionBank.length;
+  qCount=v;
+  // trim selection if over the new count
+  while(selectedIds.size>qCount){
+    const arr=[...selectedIds];
+    selectedIds.delete(arr[arr.length-1]);
+  }
+  renderQuestionList();
+  syncSelectionState();
+};
+
+function syncSelectionState(){
+  const need=qCount-selectedIds.size;
+  const valid=need===0;
+  const c=copy[lang];
+  const st=$("qStatus");
+  st.textContent=valid?c.ready:c.needSelect(need);
+  st.className="q-status "+(valid?"valid":"invalid");
+  $("begin").disabled=!valid;
+  $("beginHint").textContent=valid?"":c.needSelect(need);
+  const ta=$("qToggleAll");
+  ta.textContent=selectedIds.size===questionBank.length?c.selNone:c.selAll;
+}
+
+// ─── init ────────────────────────────────────────────────────────────
+fetch("/api/config").then(r=>r.json()).then(c=>{
+  choose(c.interview_language||"de");
+  handsfree=!!c.handsfree;
+  if(c.interview&&c.interview.active){
+    lang=c.interview.language;
+    interviewStarted=true;
+    enterRoom();
+    updateInterview(c.interview);
+  }
+}).catch(()=>{loadQuestionBank()});
+
+fetch("/api/devices").then(r=>r.json()).then(d=>{
+  const s=$("device");s.innerHTML="";
+  (d.devices||[]).forEach(x=>{
+    const o=document.createElement("option");
+    o.value=x.index;
+    o.textContent=x.name+(x.index===d.auto?" \xb7 default":"");
+    o.selected=x.index===(d.selected??d.auto);
+    s.appendChild(o);
+  });
+  s.onchange=()=>post("/api/settings",{input_device:Number(s.value)});
+}).catch(()=>{});
+
+// ─── start interview ─────────────────────────────────────────────────
+$("begin").onclick=async()=>{
+  if(interviewStarted)return;
+  if(selectedIds.size!==qCount){syncSelectionState();return;}
+  interviewStarted=true;
+  $("begin").disabled=true;
+  $("waiting").classList.remove("hidden");
+  const c=copy[lang];
+  if(lang==="de"){
+    $("waitTitle").textContent="Ihr Interview wird vorbereitet";
+    $("waitText").textContent="Deutsche Stimme und Spracherkennung werden geladen. Das dauert einige Sekunden.";
+  }
+  // Build ordered list: preserve the bank order for selected IDs
+  const ordered=questionBank.filter(q=>selectedIds.has(q.id)).map(q=>q.id);
+  try{
+    const r=await post("/api/interview/start",{language:lang,selected_ids:ordered,count:qCount});
+    if(!r.ok)throw Error(r.reason||"start failed");
+  }catch(e){
+    interviewStarted=false;
+    $("begin").disabled=false;
+    $("waiting").classList.add("hidden");
+    toast(lang==="de"?"Interview konnte nicht gestartet werden":"Interview could not start");
+  }
+};
+
+// ─── interview room ──────────────────────────────────────────────────
+function enterRoom(){
+  const c=copy[lang];
+  $("waiting").classList.add("hidden");
+  $("lobby").classList.add("hidden");
+  $("room").classList.remove("hidden");
+  $("langTag").textContent=c.tag;
+  $("personName").textContent=lang==="de"?"Sophie Keller":"Sophie Reed";
+  $("personRole").textContent=c.role;
+  document.querySelector(".dossier-head h2").textContent=c.answers;
+  $("emptyTranscript").textContent=c.empty;
+  $("end").textContent=c.finish;
+  syncMode();
+  setState("ready");
+}
+function updateInterview(i){
+  if(!i)return;
+  answered=i.answered||0;total=i.total||12;
+  $("progressCopy").textContent=`${answered} / ${total}`;
+  $("progressBar").style.transform=`scaleX(${(answered/total).toFixed(4)})`;
+  $("end").disabled=answered<1||ending;
+  const q=i.current_question;
+  if(q){
+    $("questionMeta").textContent=`${lang==="de"?"FRAGE":"QUESTION"} ${String(q.number).padStart(2,"0")} \xb7 ${(q.category||"").toUpperCase()}`;
+    $("questionText").textContent=q.text;
+  }else{
+    $("questionMeta").textContent=lang==="de"?"INTERVIEW ABGESCHLOSSEN":"INTERVIEW COMPLETE";
+    $("questionText").textContent=lang==="de"?"Alle Fragen wurden beantwortet. Erstellen Sie jetzt Ihren PDF-Bericht.":"All questions are answered. Create your PDF assessment now.";
+  }
+}
+function setState(s){
+  state=s;const c=copy[lang];
+  $("stateText").textContent=c.states[s]||s;
+  $("stateDot").className="state-dot "+(s==="ready"?"live":(["listening","thinking","transcribing","speaking","recovering"].includes(s)?"busy":""));
+  $("portraitWrap").classList.toggle("speaking",s==="speaking");
+  recording=s==="listening";$("mic").classList.toggle("recording",recording);
+  const allowed=canTalk&&interviewStarted&&!ending&&["ready","speaking"].includes(s)&&answered<total;
+  $("mic").disabled=!allowed;
+}
+function syncMode(){
+  const c=copy[lang];
+  $("modeLabel").textContent=handsfree?c.hands:c.ptt;
+  $("mode").textContent=handsfree?c.switchPtt:c.switchHands;
+  $("micNote").innerHTML=handsfree?c.noteHands:c.notePtt;
+}
+function addTranscript(role,text){
+  const empty=$("emptyTranscript");if(empty)empty.remove();
+  const box=document.createElement("article");
+  box.className="utterance "+(role==="user"?"candidate":"interviewer");
+  box.innerHTML=`<small>${role==="user"?(lang==="de"?"BEWERBER":"CANDIDATE"):"INTERVIEWER"}</small><p>${ESC(text)}</p>`;
+  $("transcript").appendChild(box);
+  $("transcript").scrollTop=$("transcript").scrollHeight;
+}
+
+// ─── SSE events ──────────────────────────────────────────────────────
+function connectSSE(){
+  if(evtSource){try{evtSource.close();}catch(_){}}
+  evtSource=new EventSource("/events");
+  evtSource.onmessage=e=>{try{handle(JSON.parse(e.data))}catch(_){}};
+}
+connectSSE();
+
+function handle(d){switch(d.kind){
+  case"ready":canTalk=true;break;
+  case"state":setState(d.state);break;
+  case"interview_starting":lang=d.language;break;
+  case"interview_started":interviewStarted=true;lang=d.language;enterRoom();updateInterview(d);break;
+  case"interview_progress":updateInterview(d);break;
+  case"interview_complete":updateInterview(d);toast(lang==="de"?"Interview abgeschlossen \u2014 Bericht erstellen":"Interview complete \u2014 create your report");break;
+  case"transcript":addTranscript(d.role,d.text);break;
+  case"notice":toast(d.text);break;
+  case"evaluating":showEvaluating();break;
+  case"session_end":showDetailedFeedback(d.evaluation);break;
+  case"interview_reset":goHome();break;
+  case"boot_failed":showFatal(d.message+(d.detail?"\n"+d.detail:""));break;
+  case"turn_error":toast(d.message||"Turn failed");break;
+  case"mic_error":toast(d.message||"Microphone error");break;
+}}
+
+// ─── recording (PTT + hands-free) ────────────────────────────────────
+function startRec(){if($("mic").disabled||recording)return;post("/api/ptt/start").catch(()=>{})}
+function stopRec(){if(!recording)return;post("/api/ptt/stop").catch(()=>{})}
+$("mic").addEventListener("mousedown",e=>{e.preventDefault();startRec()});
+document.addEventListener("mouseup",stopRec);
+$("mic").addEventListener("touchstart",e=>{e.preventDefault();startRec()},{passive:false});
+document.addEventListener("touchend",stopRec);
+document.addEventListener("keydown",e=>{if(e.code==="Space"&&!e.repeat&&!$("room").classList.contains("hidden")){e.preventDefault();startRec()}});
+document.addEventListener("keyup",e=>{if(e.code==="Space"){e.preventDefault();stopRec()}});
+window.addEventListener("blur",stopRec);
+$("mode").onclick=async()=>{handsfree=!handsfree;const r=await post("/api/handsfree",{enabled:handsfree});handsfree=!!r.enabled;syncMode()};
+
+// ─── end / finish interview ──────────────────────────────────────────
+$("end").onclick=()=>{
+  if(answered<1||ending)return;
+  const ask=lang==="de"?"Interview beenden und PDF-Bericht erstellen?":"Finish the interview and create your PDF report?";
+  if(!confirm(ask))return;
+  ending=true;$("end").disabled=true;
+  showEvaluating();
+  post("/api/interview/finish").catch(()=>{});
+};
+
+function showEvaluating(){
+  $("waiting").classList.remove("hidden");
+  $("waitTitle").textContent=lang==="de"?"Ihr Bericht wird erstellt":"Creating your assessment";
+  $("waitText").textContent=lang==="de"?"Ihre Antworten werden bewertet und als privater PDF-Bericht gespeichert.":"Your answers are being assessed and saved as a private PDF report.";
+}
+
+// ─── detailed feedback view ──────────────────────────────────────────
+function showDetailedFeedback(ev){
+  $("waiting").classList.add("hidden");
+  const fb=$("feedback");
+  fb.classList.remove("hidden");
+  if(!ev){
+    fb.innerHTML=`<div class="result-card"><div class="intro-kicker" style="color:var(--danger)">ERROR</div><h2>${lang==="de"?"Auswertung fehlgeschlagen":"Assessment failed"}</h2><p style="color:var(--muted)">${lang==="de"?"Das Interview wurde gespeichert, aber die Auswertung konnte nicht erstellt werden.":"The interview was saved, but the assessment could not be created."}</p><div class="result-actions"><button class="primary" onclick="requestHome()">Home</button></div></div>`;
+    return;
+  }
+  const c=copy[lang].fb;
+  const score=Number(ev.overall_score||0);
+  const dims=ev.dimensions||[];
+  const strengths=ev.strengths||[];
+  const improvements=ev.improvements||[];
+  const answers=ev.answer_feedback||[];
+
+  let html=`<div class="feedback-view">`;
+  // header
+  html+=`<div class="fb-header"><div class="intro-kicker">${ESC(c.kicker)}</div><h2>${ESC(c.title)}</h2><div class="fb-verdict">${ESC(ev.verdict||"")}</div></div>`;
+  // score row
+  html+=`<div class="fb-score-row"><div class="score-ring" style="--score:${score}%"><strong>${score}</strong></div><p class="fb-summary">${ESC(ev.summary||"")}</p></div>`;
+  // body
+  html+=`<div class="fb-body">`;
+  // dimensions
+  if(dims.length){
+    html+=`<div class="fb-section"><h3>${ESC(c.dimensions)}</h3><div class="fb-dims">`;
+    dims.forEach(d=>{
+      html+=`<div class="fb-dim"><div class="fb-dim-label">${ESC(d.label||d.key)}</div><div class="fb-dim-score">${d.score}/100</div>${d.note?`<div class="fb-dim-note">${ESC(d.note)}</div>`:""}</div>`;
+    });
+    html+=`</div></div>`;
+  }
+  // strengths
+  if(strengths.length){
+    html+=`<div class="fb-section"><h3>${ESC(c.strengths)}<span class="label-count">(${strengths.length})</span></h3><div class="fb-pills">`;
+    strengths.forEach(s=>{html+=`<div class="fb-pill">${ESC(s)}</div>`;});
+    html+=`</div></div>`;
+  }
+  // improvements
+  if(improvements.length){
+    html+=`<div class="fb-section"><h3>${ESC(c.improvements)}<span class="label-count">(${improvements.length})</span></h3><div class="fb-pills">`;
+    improvements.forEach(s=>{html+=`<div class="fb-pill improve">${ESC(s)}</div>`;});
+    html+=`</div></div>`;
+  }
+  // per-question feedback
+  if(answers.length){
+    html+=`<div class="fb-section"><h3>${ESC(c.questions)}<span class="label-count">(${answers.length})</span></h3>`;
+    // match answers with interview transcript data
+    answers.forEach((a,i)=>{
+      const qObj=questionBank.find(q=>q.id===a.question_id)||{};
+      html+=`<div class="fb-qa"><div class="fb-qa-head"><span class="fb-qa-num">${String(i+1).padStart(2,"0")} \xb7 ${ESC((qObj.category||"").toUpperCase())}</span><span class="fb-qa-score">${a.score}/100</span></div>`;
+      html+=`<p class="fb-qa-q">${ESC(qObj.text||a.question_id)}</p>`;
+      // candidate answer from transcript answers recorded server-side
+      if(a._answer_text){
+        html+=`<div class="fb-qa-label">${ESC(c.answer)}</div><p class="fb-qa-answer">${ESC(a._answer_text)}</p>`;
+      }
+      if(a.feedback){
+        html+=`<div class="fb-qa-label">${ESC(c.feedback)}</div><p class="fb-qa-feedback">${ESC(a.feedback)}</p>`;
+      }
+      if(a.better_answer){
+        html+=`<div class="fb-qa-label">${ESC(c.better)}</div><p class="fb-qa-better">${ESC(a.better_answer)}</p>`;
+      }
+      html+=`</div>`;
+    });
+    html+=`</div>`;
+  }
+  // actions
+  html+=`<div class="fb-actions"><button class="primary" id="fbDownload">${ESC(c.download)}</button><button class="btn-outline" id="fbHome">${ESC(c.home)}</button></div>`;
+  html+=`</div></div>`;
+  fb.innerHTML=html;
+
+  // wire buttons
+  const dlBtn=document.getElementById("fbDownload");
+  if(dlBtn) dlBtn.onclick=()=>{
+    const a=document.createElement("a");
+    a.href="/api/interview/report/download";
+    a.download="";
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+  };
+  const homeBtn=document.getElementById("fbHome");
+  if(homeBtn) homeBtn.onclick=()=>requestHome();
+}
+
+// ─── home / reset ────────────────────────────────────────────────────
+let _homePending=false;
+function requestHome(){
+  if(_homePending)return;
+  _homePending=true;
+  post("/api/interview/home").finally(()=>{goHome()});
+}
+function goHome(){
+  // Guard: idempotent — if already on the lobby, skip all work
+  if(!$("lobby").classList.contains("hidden")){_homePending=false;return;}
+  interviewStarted=false;ending=false;answered=0;total=12;canTalk=false;recording=false;
+  $("feedback").classList.add("hidden");$("feedback").innerHTML="";
+  $("waiting").classList.add("hidden");
+  $("room").classList.add("hidden");
+  $("lobby").classList.remove("hidden");
+  $("transcript").innerHTML=`<div class="empty" id="emptyTranscript">${ESC(copy[lang].empty)}</div>`;
+  connectSSE();
+  loadQuestionBank();
+  _homePending=false;
+}
+
+function showFatal(text){$("fatalText").textContent=text;$("fatal").classList.remove("hidden")}
+</script>
+</body>
+</html>

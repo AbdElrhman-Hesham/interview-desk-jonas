@@ -1,0 +1,188 @@
+{
+  "schema": 1,
+  "_comment": [
+    "Pinned bootstrap manifest. Every value here was READ FROM THE WORKING",
+    "DEVELOPMENT MACHINE, not chosen from documentation: sizes and SHA-256",
+    "digests were computed over the files this product actually runs on, and",
+    "every URL was probed with an HTTP Range request and confirmed to serve a",
+    "byte count identical to the local file.",
+    "",
+    "DO NOT bump anything here because a newer version exists. The stack is",
+    "pinned to what is verified working. See lab/setup/README.md."
+  ],
+
+  "python": {
+    "required_major_minor": "3.10",
+    "verified": "3.10.11",
+    "why": [
+      "ctranslate2 4.8.1, onnxruntime 1.23.2 and piper-tts 1.6.0 wheels are",
+      "resolved for this interpreter. The machine's system default was 3.14.3",
+      "and was DELIBERATELY not used -- the ML wheel ecosystem does not",
+      "publish for it, and the resulting install failures were misread as",
+      "stack incompatibility (lab/reports/ENVIRONMENT.md section 4)."
+    ],
+    "install_url": "https://www.python.org/downloads/release/python-31011/",
+    "override_flag": "--python <path-to-python.exe>"
+  },
+
+  "gpu": {
+    "verified_device": "NVIDIA GeForce RTX 5060 Laptop GPU",
+    "verified_compute_capability": "12.0 (sm_120, Blackwell)",
+    "verified_driver": "577.05",
+    "min_driver": "550.00",
+    "min_driver_basis": [
+      "CUDA 12.4 minimum driver for Windows. The llama.cpp build pinned below",
+      "is the CUDA 12.4 one and reaches sm_120 through PTX JIT -- verified by",
+      "`llama-server.exe --list-devices` enumerating the GPU, and by the",
+      "product running. NOTE: lab/reports/ENVIRONMENT.md section 7 concluded",
+      "the CUDA 13.3 build was 'the only viable official prebuilt'. That",
+      "conclusion is SUPERSEDED by the working 12.4 build; the 13.3 archive",
+      "is still on the dev machine at lab/bin/llama but is not what ships."
+    ],
+    "vram_total_mb_verified": 8151,
+    "vram_required_mb": 7000,
+    "vram_required_basis": "E0 frozen gate: measured peak 6745 MB with Whisper int8_float16 co-resident; smoke measures 4469 MB peak at current HEAD."
+  },
+
+  "path_length": {
+    "max_path": 260,
+    "venv_longest_relative": 143,
+    "measured_on": "lab/.venv, deepest entry: Lib/site-packages/onnxruntime/tools/ort_format_model/ort_flatbuffers_py/fbs/__pycache__/RuntimeOptimizationRecordContainerEntry.cpython-310.pyc",
+    "warn_margin": 20,
+    "_comment": [
+      "⚑ FOUND BY TESTING, not anticipated. A fresh venv created under a long",
+      "path installs all 44 packages successfully and then fails to import:",
+      "  sounddevice  -> OSError ... libportaudio64bit.dll: error 0xce",
+      "  onnxruntime  -> ImportError: DLL load failed ... The filename or",
+      "                  extension is too long.",
+      "Windows LoadLibrary resolves DLL dependencies against MAX_PATH even when",
+      "HKLM\\SYSTEM\\CurrentControlSet\\Control\\FileSystem\\LongPathsEnabled is 1 --",
+      "verified: that flag IS 1 on the development machine and the imports still",
+      "failed at a 192-character venv root.",
+      "",
+      "The production tree sits at a 103-character venv root, worst case 247 of",
+      "260 -- THIRTEEN characters of headroom. A user whose account name is a",
+      "little longer, or who unpacks one folder deeper, lands on an error",
+      "message nobody could act on. Hence the preflight check."
+    ]
+  },
+
+  "disk": {
+    "download_bytes": 7542190631,
+    "final_on_disk_bytes": 10531206179,
+    "required_free_bytes": 17179869184,
+    "recommended_free_bytes": 21474836480,
+    "_comment": "final = venv 2.30 GiB + llama124 extracted 1.08 + gemma 4.80 + two piper voices 0.12 + whisper 1.51. Required leaves room for the retained zips and pip's wheel cache during setup."
+  },
+
+  "artifacts": [
+    {
+      "id": "llama_cpp_bin",
+      "label": "llama.cpp b10298, Windows x64, CUDA 12.4",
+      "kind": "zip",
+      "url": "https://github.com/ggml-org/llama.cpp/releases/download/b10298/llama-b10298-bin-win-cuda-12.4-x64.zip",
+      "source": "official ggml-org/llama.cpp GitHub release asset",
+      "archive": "lab/bin/llama-b10298-bin-win-cuda-12.4-x64.zip",
+      "size": 250457449,
+      "sha256": "c337a4ebc07d5f93a076bc5d674f1b6366df4bd17260306c41fadd5dff3f0300",
+      "extract_to": "lab/bin/llama124",
+      "sentinel": "llama-server.exe",
+      "stage": "binaries",
+      "why": "app/config.py LLAMA_BUILD_DIR. Runs as a separate process on purpose -- ctranslate2 is CUDA 12 and two CUDA runtimes must not share one address space."
+    },
+    {
+      "id": "llama_cpp_cudart",
+      "label": "CUDA 12.4 runtime DLLs for the llama.cpp build",
+      "kind": "zip",
+      "url": "https://github.com/ggml-org/llama.cpp/releases/download/b10298/cudart-llama-bin-win-cuda-12.4-x64.zip",
+      "source": "official ggml-org/llama.cpp GitHub release asset",
+      "archive": "lab/bin/cudart-llama-bin-win-cuda-12.4-x64.zip",
+      "size": 391443627,
+      "sha256": "8c79a9b226de4b3cacfd1f83d24f962d0773be79f1e7b75c6af4ded7e32ae1d6",
+      "extract_to": "lab/bin/llama124",
+      "sentinel": "cudart64_12.dll",
+      "stage": "binaries",
+      "why": "No CUDA Toolkit is installed on the verified machine (ENVIRONMENT.md section 3); the runtime DLLs must sit beside llama-server.exe."
+    },
+    {
+      "id": "llm_gemma",
+      "label": "Gemma 4 E4B QAT q4_0 (official Google GGUF)",
+      "kind": "file",
+      "url": "https://huggingface.co/google/gemma-4-E4B-it-qat-q4_0-gguf/resolve/4b4a2c1d584be7264f87aac328a1bc739ce81b6c/gemma-4-E4B_q4_0-it.gguf",
+      "source": "Hugging Face google/gemma-4-E4B-it-qat-q4_0-gguf, revision pinned (not `main`)",
+      "dest": "lab/models/gemma-4-E4B_q4_0-it.gguf",
+      "size": 5154941280,
+      "sha256": "676c35070db6dbe52f93e9c864ee0fba4eddea94b9c875d9cb10daff453fbaee",
+      "stage": "models",
+      "why": "app/config.py LLM_MODEL_PATH. MODEL_STATUS is provisional but frozen for development; do not substitute."
+    },
+    {
+      "id": "tts_voice",
+      "label": "Piper de_DE-thorsten-medium (voice weights)",
+      "kind": "file",
+      "url": "https://huggingface.co/rhasspy/piper-voices/resolve/ea046e8458f6acd997706d6e6066a022b42f6fb1/de/de_DE/thorsten/medium/de_DE-thorsten-medium.onnx",
+      "source": "Hugging Face rhasspy/piper-voices, revision pinned (not `main`)",
+      "dest": "lab/models/piper/de_DE-thorsten-medium.onnx",
+      "size": 63201294,
+      "sha256": "7e64762d8e5118bb578f2eea6207e1a35a8e0c30595010b666f983fc87bb7819",
+      "stage": "models",
+      "why": "app/config.py TTS_VOICE. Chosen by E3 on measured intelligibility evidence; do not substitute."
+    },
+    {
+      "id": "tts_voice_config",
+      "label": "Piper de_DE-thorsten-medium (voice config)",
+      "kind": "file",
+      "url": "https://huggingface.co/rhasspy/piper-voices/resolve/ea046e8458f6acd997706d6e6066a022b42f6fb1/de/de_DE/thorsten/medium/de_DE-thorsten-medium.onnx.json",
+      "source": "Hugging Face rhasspy/piper-voices, revision pinned (not `main`)",
+      "dest": "lab/models/piper/de_DE-thorsten-medium.onnx.json",
+      "size": 4819,
+      "sha256": "974adee790533adb273a1ac88f49027d2a1b8f0f2cf4905954a4791e79264e85",
+      "stage": "models",
+      "why": "Piper refuses to load a voice without its config; sample rate and phoneme map live here."
+    },
+    {
+      "id": "tts_voice_en",
+      "label": "Piper en_US-lessac-medium (voice weights)",
+      "kind": "file",
+      "url": "https://huggingface.co/rhasspy/piper-voices/resolve/5512791644e2148e4be301d4c7fc2a4bf51a5057/en/en_US/lessac/medium/en_US-lessac-medium.onnx",
+      "source": "Hugging Face rhasspy/piper-voices, revision pinned (not main)",
+      "dest": "lab/models/piper/en_US-lessac-medium.onnx",
+      "size": 63201294,
+      "sha256": "5efe09e69902187827af646e1a6e9d269dee769f9877d17b16b1b46eeaaf019f",
+      "stage": "models",
+      "why": "Native offline English voice for the bilingual call-center interview mode."
+    },
+    {
+      "id": "tts_voice_en_config",
+      "label": "Piper en_US-lessac-medium (voice config)",
+      "kind": "file",
+      "url": "https://huggingface.co/rhasspy/piper-voices/resolve/5512791644e2148e4be301d4c7fc2a4bf51a5057/en/en_US/lessac/medium/en_US-lessac-medium.onnx.json",
+      "source": "Hugging Face rhasspy/piper-voices, revision pinned (not main)",
+      "dest": "lab/models/piper/en_US-lessac-medium.onnx.json",
+      "size": 4885,
+      "sha256": "efe19c417bed055f2d69908248c6ba650fa135bc868b0e6abb3da181dab690a0",
+      "stage": "models",
+      "why": "Sample rate and phoneme configuration for the English interview voice."
+    }
+  ],
+
+  "hf_snapshots": [
+    {
+      "id": "stt_whisper",
+      "label": "faster-whisper large-v3-turbo (CTranslate2)",
+      "repo": "mobiuslabsgmbh/faster-whisper-large-v3-turbo",
+      "revision": "0a363e9161cbc7ed1431c9597a8ceaf0c4f78fcf",
+      "approx_bytes": 1618955983,
+      "model_bin_sha256": "e76620f83d5f5b69efd3d87e3dc180c1bd21df9fbebacfd4335e5e1efcc018da",
+      "stage": "models",
+      "why": [
+        "`large-v3-turbo` in app/config.py is an ALIAS that faster-whisper 1.2.1",
+        "resolves to this repo. Recording the alias alone would not be",
+        "reproducible, because the alias target can change between library",
+        "versions -- which is why the library version is pinned too.",
+        "Downloaded through huggingface_hub, which verifies its own digests;",
+        "the pinned revision is what makes it reproducible."
+      ]
+    }
+  ]
+}

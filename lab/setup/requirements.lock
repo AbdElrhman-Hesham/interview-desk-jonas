@@ -1,0 +1,69 @@
+# Pinned Python dependencies for Lena. FROZEN FROM THE WORKING VENV.
+#
+# Every line is an exact ==. This is the full transitive closure as installed
+# on the machine the product is verified on, not a hand-written top-level list,
+# because a hand-written list re-resolves transitively and stops being the
+# stack that was tested.
+#
+# Load-bearing entries -- do not "upgrade":
+#   ctranslate2 4.8.1        the STT engine; built against CUDA 12 (cublas64_12)
+#   faster-whisper 1.2.1     resolves the large-v3-turbo alias; see manifest.json
+#   nvidia-cublas-cu12       ⚑ REQUIRED. The ctranslate2 Windows wheel does NOT
+#   nvidia-cudnn-cu12        ⚑ bundle cuBLAS and no CUDA Toolkit is installed.
+#                            Without these, the model LOADS and then dies at the
+#                            first GEMM. Installing them is necessary but not
+#                            sufficient: Python 3.8+ ignores PATH for extension
+#                            DLLs, so app/providers.py registers
+#                            site-packages/nvidia/*/bin via os.add_dll_directory.
+#   onnxruntime 1.23.2       Piper inference
+#   piper-tts 1.6.0          TTS
+#   numpy 2.2.6              pinned deliberately; 2.x ABI matters to the above
+#
+# Regenerate ONLY from a venv that has passed regress.cmd:
+#   lab\.venv\Scripts\python.exe -m pip freeze
+anyio==4.14.2
+av==17.1.0
+certifi==2026.7.22
+cffi==2.1.1
+charset-normalizer==3.4.9
+click==8.4.2
+colorama==0.4.6
+coloredlogs==15.0.1
+ctranslate2==4.8.1
+exceptiongroup==1.3.1
+faster-whisper==1.2.1
+filelock==3.32.2
+flatbuffers==25.12.19
+fsspec==2026.7.0
+h11==0.16.0
+hf-xet==1.6.0
+httpcore==1.0.9
+httpx==0.28.1
+huggingface_hub==1.26.1
+humanfriendly==10.0
+idna==3.18
+mpmath==1.3.0
+numpy==2.2.6
+nvidia-cublas-cu12==12.9.2.10
+nvidia-cuda-nvrtc-cu12==12.9.86
+nvidia-cudnn-cu12==9.24.0.43
+nvidia-ml-py==13.610.43
+onnxruntime==1.23.2
+packaging==26.3
+pathvalidate==3.3.1
+pillow==12.3.0
+piper-tts==1.6.0
+protobuf==7.35.1
+psutil==7.2.2
+pycparser==3.0
+pyreadline3==3.5.6
+PyYAML==6.0.3
+requests==2.34.2
+reportlab==5.0.1
+sounddevice==0.5.5
+soundfile==0.14.0
+sympy==1.14.0
+tokenizers==0.23.1
+tqdm==4.70.0
+typing_extensions==4.16.0
+urllib3==2.7.0
